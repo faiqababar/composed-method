@@ -1,37 +1,40 @@
 # Composed method
+An agent skill for writing, refactoring, and reviewing code using the **Composed Method** style to produce clean, readable, and well-structured code.
 
-An agent skill for writing, refactoring, and reviewing code in composed-method style to generate clean and well structured code.
+The core idea is simple:
 
-A function is a table of contents: each line is one named step at the same abstraction level, and details live in helpers one level down.
+> **A function should read like a table of contents.** Each line represents one meaningful step at roughly the same level of abstraction, while the implementation details live in helpers one level down.
 
 ## What it helps accomplish
 
-- Keep high-level functions readable as a sequence of named steps instead of mixed orchestration and implementation
-- Keep one level of abstraction in a method. Abstraction is how a person understands something. Jumping from one level of abstraction to another takes mental effort. If you have to keep jumping between levels to understand some code, it will be far more difficult to understand. So mixed “what” and “how” is harder to read.
-- Tackle complex problems top-down: that is how people think, and the structure in your head gets translated into the code
-- Flatten nested guards with early exits so the happy path stays obvious
-- Name steps after real actions and existing domain words, not invented labels
-- Extract only when the name is a real step, not because a block is long or appears twice
-- Leave comments only when the code cannot show why
+- **Keep high-level functions easy to read.** They should describe a sequence of named steps instead of mixing orchestration with implementation details.
 
-The full rules are in [SKILL.md](./SKILL.md).
+- **Keep one level of abstraction per method.** Abstraction is about how we understand something. Moving repeatedly between high-level intent and low-level implementation creates unnecessary mental effort. Keeping the “what” separate from the “how” makes code easier to follow.
+
+- **Solve complex problems top-down.** Start with the overall sequence of steps, then move into the details. This mirrors how we naturally reason about problems and lets that mental structure translate directly into the code.
+
+- **Keep control flow flat.** Use guards and early exits instead of unnecessary nesting so the happy path remains obvious.
+
+- **Use meaningful names.** Name steps after real actions and existing domain concepts rather than inventing new labels or abstractions.
+
+- **Extract for meaning, not size.** Create a helper when its name represents a genuine step or concept—not simply because a block is long or duplicated.
+
+- **Prefer expressive code over comments.** Add comments only when the code itself cannot explain *why* something exists or behaves a certain way.
+
+The full set of rules is in [SKILL.md](https://github.com/faiqababar/composed-method/blob/main/SKILL.md).
 
 ## Inspiration
 
-This skill is inspired by Kent Beck’s _Smalltalk Best Practice Patterns_. In that book, Beck says:
+This skill is inspired by Kent Beck’s *Smalltalk Best Practice Patterns*. Beck describes the Composed Method pattern as:
 
 > Compose methods out of calls to other methods, each of which is at roughly the same level of abstraction.
 
-[Jorge Manrubia’s write-up of the pattern](https://www.jorgemanrubia.com/2009/06/28/the-composed-method-implementation-pattern/) is the explanation this skill follows. Three properties should rule method design:
+[Jorge Manrubia’s explanation of the pattern](https://www.jorgemanrubia.com/2009/06/28/the-composed-method-implementation-pattern/) captures the approach this skill follows particularly well.
 
-- **Cohesion.** A method does one thing, from the caller’s point of view.
-- **Clear interfaces.** Steve Maguire’s _Writing Solid Code_ says the signature — name, parameters, return, and their types — should be enough to understand the method. That needs cohesion. C’s `realloc()` is the anti-pattern: allocate, grow, shrink, and free behind one name.
+Three properties should guide method design:
 
-  ```c
-  void *realloc(void *ptr, size_t size);
-  // ptr == NULL  -> allocate
-  // size == 0    -> free
-  // otherwise    -> grow or shrink, maybe move
-  ```
+- **Cohesion.** A method should do one thing from the caller’s point of view.
 
-- **Symmetry.** The steps a method is divided into sit at the same level of abstraction.
+- **Clear interfaces.** A method’s signature—its name, parameters, return value, and types—should communicate enough to understand what the method does. This depends on cohesion.
+
+- **Symmetry.** The steps within a method should sit at roughly the same level of abstraction. A method should not jump between high-level decisions and low-level implementation details.
