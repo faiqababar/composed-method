@@ -1,14 +1,17 @@
 ---
 name: composed-method
 description: >
-  Use when writing, refactoring, or reviewing functions, helpers, control flow,
-  naming, or comments. Also when the user asks for composed method, stepdown,
-  orchestrator style, or named sequential steps.
+ Use when writing, refactoring, or reviewing logic-heavy functions: control
+ flow, orchestration, branching, naming, or comments. Skip trivial one-liners.
+ Also when the user asks for composed method, stepdown, orchestrator style, or
+ named sequential steps.
 ---
 
 # Composed method
 
-A function is a table of contents. Each line is one named step at the same abstraction level. Details live in helpers one level down.
+A function is a table of contents. Each line is one named step at the same abstraction level. Details live in helpers one level down. Do not mix “what” (named steps) with “how” (implementation) in the same function. Jumping levels makes the code harder to follow.
+
+Write top-down: name the steps as calls first, then fill each helper. That is how the structure in your head becomes the code.
 
 Priority: correctness, then repository conventions, then these rules. Apply to code being changed. Do not migrate unrelated code.
 
@@ -87,9 +90,30 @@ Do not lift that missing-value guard outside when the other type does not need i
 
 The name is the action, not a metaphor. Reuse words from types, tables, APIs, docs, and nearby code. Do not invent labels.
 
+From the caller, a method does one thing. Who the caller is depends on the abstraction level. If you cannot name that thing without “and”, split it.
+
 If a function does two meaningful things, split them or name both. Do not call it `buildDrafts` if it also persists.
 
 A distinguishing fact that is not the action does not belong in the identifier. If the code cannot show it, use a short comment.
+
+## Clear interfaces
+
+The signature — name, parameters, and return — should be enough to understand the method. Do not put two jobs behind one name, or two meanings in one parameter.
+
+**Anti-pattern:** `realloc`: one function that allocates, grows, shrinks, and frees.
+
+```ts
+function realloc(block: Buffer | null, size: number): Buffer | null {
+  if (block === null) return allocate(size);
+  if (size === 0) {
+    free(block);
+    return null;
+  }
+  return resize(block, size);
+}
+```
+
+Split those jobs. The caller should not need folklore to know what `null` and `0` mean.
 
 ## Comments
 
@@ -104,6 +128,7 @@ On review, apply the same rules to changed code only. Explain the structural or 
 ## Red flags
 
 - One function both builds a `Map` and writes unrelated output
+- One name or parameter with two jobs (allocate and free, id and count)
 - `if (type === X && extra !== null) ... else` where `else` can still receive type `X`
 - Nested `if (x !== undefined)` when an early exit would flatten it
 - A helper named for one action that also does another
