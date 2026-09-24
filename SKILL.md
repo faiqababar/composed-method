@@ -1,10 +1,10 @@
 ---
-name: composed-method
+name: composed-method-code-writing-pattern
 description: >
- Use when writing, refactoring, or reviewing logic-heavy functions: control
- flow, orchestration, branching, naming, or comments. Skip trivial one-liners.
- Also when the user asks for composed method, stepdown, orchestrator style, or
- named sequential steps.
+  Use when writing, refactoring, or reviewing logic-heavy functions: control
+  flow, orchestration, branching, naming, or comments. Skip trivial one-liners.
+  Also when the user asks for composed method, stepdown, orchestrator style, or
+  named sequential steps.
 ---
 
 # Composed method
@@ -37,7 +37,34 @@ function processItems(items: Item[]): void {
 
 ## Extract
 
-Extract when the name is a real step. Do not extract because a block is long, appears twice, or can become a function.
+Extract when the name is a real step the caller could not see. Do not extract because a block is long, appears twice, has one call site, or can become a function.
+
+Do not write a function whose body is one filter, one lookup, one ternary, or one returned expression. Put that line at the call site. A name that only restates the filter is not a step.
+
+```ts
+const own = ctx.events.filter(
+  event => event.entityKind === "access_scope" && event.entityId === oldId,
+);
+```
+
+Not a wrapper around that filter:
+
+```ts
+function eventsFor(ctx: Ctx, kind: string, id: number): Event[] {
+  return ctx.events.filter(event => event.entityKind === kind && event.entityId === id);
+}
+```
+
+Same for a branch that only picks a field already in scope:
+
+```ts
+ownerId:
+  event.ownerKind === "actor" || event.ownerKind === "actor_group"
+    ? written.ownerId
+    : event.ownerId,
+```
+
+Not `remapOwnerId(event, written.ownerId)`.
 
 Prefer a little duplication over a callback or deferred helper that hides the sequence. Leave a tiny leaf (one lookup, one return) inline.
 
@@ -100,7 +127,7 @@ A distinguishing fact that is not the action does not belong in the identifier. 
 
 The signature — name, parameters, and return — should be enough to understand the method. Do not put two jobs behind one name, or two meanings in one parameter.
 
-**Anti-pattern:** `realloc`: one function that allocates, grows, shrinks, and frees.
+Not `realloc`: one function that allocates, grows, shrinks, and frees.
 
 ```ts
 function realloc(block: Buffer | null, size: number): Buffer | null {
@@ -134,4 +161,5 @@ On review, apply the same rules to changed code only. Explain the structural or 
 - A helper named for one action that also does another
 - A new term that is not already in the domain
 - A callback used only to share a few lines
+- A function whose body is one filter, one lookup, one ternary, or one returned expression
 - A comment that repeats the name or branch
